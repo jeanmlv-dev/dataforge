@@ -1,0 +1,42 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Testing and coverage
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Local data (keep sample datasets)
+data/raw/
+data/processed/
+
+# Keep uv.lock tracked for reproducibility
