@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import time
 from pathlib import Path
 
 from dataforge.ingestion.csv_reader import read_csv
@@ -14,19 +15,60 @@ logger = logging.getLogger(__name__)
 
 def run_pipeline(input_path: str | Path) -> int:
     """Ingest, validate, transform and store patient data."""
-    logger.info("Starting DataForge pipeline")
+    start_time = time.perf_counter()
+    stage = "ingestion"
 
-    dataframe = read_csv(input_path)
-    logger.info("Ingested %d records", len(dataframe))
+    logger.info("Starting DataForge pipeline | input=%s", input_path)
 
-    validate_patient_data(dataframe)
-    logger.info("Data validation completed")
+    try:
+        dataframe = read_csv(input_path)
+        records_read = len(dataframe)
 
-    transformed = transform_patient_data(dataframe)
-    logger.info("Data transformation completed")
+        logger.info(
+            "Ingestion completed | records_read=%d",
+            records_read,
+        )
 
-    processed = upsert_patient_data(transformed)
-    logger.info("Stored %d records in PostgreSQL", processed)
+        stage = "validation"
+        validate_patient_data(dataframe)
+        logger.info("Validation completed | status=success")
+
+        stage = "transformation"
+        transformed = transform_patient_data(dataframe)
+
+        logger.info(
+            "Transformation completed | records_output=%d",
+            len(transformed),
+        )
+
+        stage = "storage"
+        processed = upsert_patient_data(transformed)
+
+        logger.info(
+            "Storage completed | records_processed=%d",
+            processed,
+        )
+
+    except Exception:
+        duration = time.perf_counter() - start_time
+
+        logger.exception(
+            "Pipeline failed | stage=%s | duration_seconds=%.3f",
+            stage,
+            duration,
+        )
+        raise
+
+    duration = time.perf_counter() - start_time
+
+    logger.info(
+        "Pipeline completed | status=success | "
+        "records_read=%d | records_processed=%d | "
+        "duration_seconds=%.3f",
+        records_read,
+        processed,
+        duration,
+    )
 
     return processed
 
@@ -38,6 +80,7 @@ def main() -> None:
         default="data/sample/example.csv",
         help="Path to input CSV file",
     )
+
     args = parser.parse_args()
 
     logging.basicConfig(
