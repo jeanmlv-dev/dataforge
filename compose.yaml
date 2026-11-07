@@ -22,5 +22,24 @@ services:
       timeout: 5s
       retries: 5
 
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dataforge-etl:local
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: dataforge
+      POSTGRES_USER: dataforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: "no"
+
 volumes:
   postgres_data:
