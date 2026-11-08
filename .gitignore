@@ -40,3 +40,6 @@ data/raw/
 data/processed/
 
 # Keep uv.lock tracked for reproducibility
+
+# Generated execution reports
+/reports/
