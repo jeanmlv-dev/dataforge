@@ -22,7 +22,15 @@ def test_pipeline_logs_success(monkeypatch, caplog):
     monkeypatch.setattr(pipeline, "read_csv", lambda path: dataframe)
     monkeypatch.setattr(pipeline, "validate_patient_data", lambda df: None)
     monkeypatch.setattr(pipeline, "transform_patient_data", lambda df: df)
-    monkeypatch.setattr(pipeline, "upsert_patient_data", lambda df: len(df))
+    monkeypatch.setattr(
+        pipeline,
+        "upsert_patient_data_with_metrics",
+        lambda df: {
+            "records_processed": len(df),
+            "records_inserted": len(df),
+            "records_updated": 0,
+        },
+    )
 
     with caplog.at_level(logging.INFO):
         result = pipeline.run_pipeline("sample.csv")
@@ -31,8 +39,12 @@ def test_pipeline_logs_success(monkeypatch, caplog):
     assert "Ingestion completed | records_read=2" in caplog.text
     assert "Validation completed | status=success" in caplog.text
     assert "Transformation completed | records_output=2" in caplog.text
-    assert "Storage completed | records_processed=2" in caplog.text
-    assert "Pipeline completed | status=success" in caplog.text
+    assert "Storage completed | processed=2" in caplog.text
+    assert "inserted=2" in caplog.text
+    assert "updated=0" in caplog.text
+    assert "Pipeline completed |" in caplog.text
+    assert "status=success" in caplog.text
+    assert "duration_seconds=" in caplog.text
     assert "duration_seconds=" in caplog.text
 
 
@@ -59,6 +71,7 @@ def test_pipeline_logs_failure(monkeypatch, caplog):
     ):
         pipeline.run_pipeline("invalid.csv")
 
-    assert "Pipeline failed | stage=validation" in caplog.text
-    assert "duration_seconds=" in caplog.text
+    assert "Pipeline failed |" in caplog.text
+    assert "stage=validation" in caplog.text
+    assert "Invalid test data" in caplog.text
     assert "ValueError: Invalid test data" in caplog.text
