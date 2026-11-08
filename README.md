@@ -624,7 +624,7 @@ These limitations define the scope of the initial release and provide opportunit
 
 **Jean Mendes**
 
-Statistical Programming · Data Engineering · Data Analytics
+Statistical Programming · Data Science · Data Analytics & Engineering · Machine Learning
 
 [GitHub](https://github.com/jeanmlv-dev) · [LinkedIn](https://www.linkedin.com/in/jean-mendes-0a455680/)
 
