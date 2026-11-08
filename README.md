@@ -1,6 +1,6 @@
 # DataForge
 
-**A reproducible Python and SQL data engineering pipeline for ingestion, validation, transformation, PostgreSQL storage, and analytics.**
+**A reproducible, containerized Python and SQL ETL pipeline with PostgreSQL, automated testing, observability, and an analytics layer.**
 
 [![CI](https://github.com/jeanmlv-dev/dataforge/actions/workflows/ci.yml/badge.svg)](https://github.com/jeanmlv-dev/dataforge/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
@@ -8,83 +8,101 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
 ![License](https://img.shields.io/badge/License-Not%20specified-lightgrey)
 
-DataForge is an end-to-end data engineering portfolio project demonstrating modular ETL architecture, schema validation, idempotent database operations, automated testing, pipeline observability, containerized execution, and SQL analytics.
+## Overview
 
-The project processes synthetic patient-measurement data, transforming raw CSV records into validated, analysis-ready information stored in PostgreSQL.
+DataForge is an end-to-end data engineering portfolio project demonstrating how to build a reliable, reproducible, and testable ETL pipeline using Python, SQL, and PostgreSQL.
 
-It demonstrates how a reproducible data pipeline can support downstream statistical analysis, descriptive reporting, data quality assessment, and analytical applications.
+The application ingests synthetic patient-measurement data from CSV files, validates input quality, performs transformations, and persists the resulting records in a relational database.
 
-> **Project status:** ETL pipeline, PostgreSQL integration, automated testing, logging, Docker containerization, and SQL analytics layer implemented. Continuous integration is configured through GitHub Actions.
+Beyond basic ETL processing, DataForge includes:
+
+- Idempotent PostgreSQL loading with UPSERT operations.
+- Containerized execution using Docker Compose.
+- Automated unit, integration, and end-to-end tests.
+- GitHub Actions continuous integration.
+- Structured execution logging and JSON reports.
+- SQL analytics for descriptive statistics, group distributions, data quality, and group comparisons.
+- Reusable PostgreSQL analytical views.
+
+**Project scope:** Independent data engineering demonstration using synthetic data. The project does not contain real patient records or proprietary clinical-trial information.
+
+---
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["Synthetic CSV Data"] --> B["Data Ingestion"]
+    A["Synthetic CSV Data"] --> B["CSV Ingestion - Pandas"]
     B --> C["Schema Validation - Pandera"]
     C --> D["Data Transformation - Pandas"]
-    D --> E["PostgreSQL Storage - UPSERT"]
-    E --> F["SQL Analytics Layer"]
+    D --> E["PostgreSQL Storage - Psycopg UPSERT"]
+    E --> F[("PostgreSQL 17")]
 
-    F --> G["Descriptive Statistics"]
-    F --> H["Group Distributions"]
-    F --> I["Data Quality Checks"]
-    F --> J["Group Comparisons"]
-    F --> K["Analytical Views"]
+    F --> G["SQL Analytics Layer"]
+    G --> H["Descriptive Statistics"]
+    G --> I["Group Distributions"]
+    G --> J["Data Quality Checks"]
+    G --> K["Group Comparisons"]
+    G --> L["Analytical Views"]
 
-    L["Pipeline Logging and Metrics"] -.-> B
-    L -.-> C
-    L -.-> D
-    L -.-> E
+    B -.-> M["Execution Logging and Metrics"]
+    C -.-> M
+    D -.-> M
+    E -.-> M
+    M --> N["JSON Execution Reports"]
 
-    M["Pytest + Ruff + GitHub Actions"] -.-> B
-    M -.-> C
-    M -.-> D
-    M -.-> E
-    M -.-> F
+    O["Docker Compose"] -.-> E
+    O -.-> F
 
-    N["Docker Compose"] -.-> E
+    P["GitHub Actions CI"] --> Q["Ruff and Pytest"]
+    Q -.-> B
+    Q -.-> C
+    Q -.-> D
+    Q -.-> E
+    Q -.-> G
 ```
 
-The pipeline follows a modular Extract, Transform, Load (ETL) architecture.
+The architecture separates data processing, persistence, analytics, and observability into independent components.
 
-1. **Extract:** Read synthetic patient-measurement data from CSV files.
-2. **Validate:** Verify schema structure, required fields, data types, and allowed values.
-3. **Transform:** Generate derived variables for downstream analysis.
-4. **Load:** Insert or update records in PostgreSQL using idempotent UPSERT operations.
-5. **Analyze:** Execute SQL queries and views for descriptive statistics, group comparisons, distributions, and data quality checks.
-6. **Monitor:** Capture execution logs, processed-record counts, errors, and execution duration.
+**Technical documentation:** [System Architecture](docs/architecture.md) · [Engineering Decisions](docs/engineering-decisions.md)
+
+---
 
 ## Key Features
 
-- **Modular ETL:** Independent modules for ingestion, validation, transformation, and persistence.
-- **Schema validation:** Data quality checks implemented using Pandera.
-- **Data transformation:** Derived age groups and squared measurement variables.
-- **Idempotent database writes:** PostgreSQL `ON CONFLICT` operations prevent duplicate records across repeated executions.
-- **Pipeline observability:** Structured execution messages, processing metrics, error reporting, and execution duration.
-- **Containerized execution:** Run the ETL application and PostgreSQL using Docker Compose.
-- **SQL analytics:** Descriptive statistics, age distributions, data quality checks, and group comparisons.
-- **Reusable analytical views:** PostgreSQL views provide standardized access to analytical results.
-- **Automated testing:** Unit, database integration, end-to-end pipeline, logging, and SQL analytics tests.
-- **Continuous integration:** GitHub Actions automatically executes tests and code quality checks.
-- **Reproducibility:** Dependency management through `uv`, containerized infrastructure, and synthetic sample data.
+| Component | Implementation | Engineering Value |
+|---|---|---|
+| Ingestion | Python, Pandas | Structured CSV loading |
+| Validation | Pandera | Schema and data-quality enforcement |
+| Transformation | Pandas | Reusable feature derivation |
+| Persistence | PostgreSQL, Psycopg | Transactional, idempotent UPSERT |
+| Observability | Python logging, JSON | Execution metrics and error traceability |
+| Analytics | PostgreSQL SQL | Aggregations, distributions, quality checks, and views |
+| Containerization | Docker, Docker Compose | Reproducible application environment |
+| Testing | Pytest | Unit, integration, and end-to-end verification |
+| Code Quality | Ruff | Automated linting and formatting |
+| Continuous Integration | GitHub Actions | Automated validation on repository changes |
+| Dependency Management | uv | Locked, reproducible Python dependencies |
+
+---
 
 ## Technology Stack
 
-| Area | Technologies |
-|---|---|
-| Programming | Python 3.13, SQL |
-| Data processing | Pandas |
-| Data validation | Pandera |
-| Database | PostgreSQL 17, Psycopg |
-| Data analytics | PostgreSQL SQL, CTEs, aggregate functions, window functions, views |
-| Infrastructure | Docker, Docker Compose |
-| Dependency management | uv |
-| Testing | Pytest |
-| Code quality | Ruff |
-| Observability | Python logging, pipeline execution metrics |
-| CI/CD | GitHub Actions |
-| Development environment | VS Code, Git, GitHub |
+**Languages:** Python 3.13, SQL
+
+**Data Processing:** Pandas, Pandera
+
+**Database:** PostgreSQL 17, Psycopg
+
+**Infrastructure:** Docker, Docker Compose
+
+**Testing and Quality:** Pytest, Ruff
+
+**Dependency Management:** uv
+
+**Automation:** GitHub Actions
+
+---
 
 ## Repository Structure
 
@@ -93,14 +111,18 @@ dataforge/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
-│
 ├── data/
 │   └── sample/
 │       └── example.csv
-│
 ├── docs/
+│   ├── screenshots/
+│   │   ├── docker-compose.png
+│   │   ├── execution-report.png
+│   │   └── pipeline-execution.png
+│   ├── architecture.md
+│   └── engineering-decisions.md
+├── reports/
 ├── scripts/
-│
 ├── sql/
 │   ├── 001_create_tables.sql
 │   ├── 002_descriptive_statistics.sql
@@ -109,7 +131,6 @@ dataforge/
 │   ├── 005_group_comparisons.sql
 │   ├── 006_analytics_views.sql
 │   └── queries/
-│
 ├── src/
 │   └── dataforge/
 │       ├── ingestion/
@@ -118,51 +139,48 @@ dataforge/
 │       ├── storage/
 │       ├── observability/
 │       └── pipeline.py
-│
 ├── tests/
 │   ├── unit/
-│   ├── integration/
-│   │   ├── test_postgres.py
-│   │   ├── test_pipeline_e2e.py
-│   │   └── test_sql_analytics.py
-│   └── fixtures/
-│
+│   └── integration/
 ├── .dockerignore
 ├── .env.example
 ├── .gitignore
 ├── .python-version
-├── compose.yaml
 ├── Dockerfile
+├── compose.yaml
 ├── pyproject.toml
 ├── uv.lock
 └── README.md
 ```
 
+Generated execution reports are excluded from version control.
+
+---
+
 ## Getting Started
 
 ### Prerequisites
 
+For the fully containerized workflow:
+
+- Git
+- Docker Desktop with Docker Compose
+
+For local Python development:
+
 - Python 3.13
 - [uv](https://docs.astral.sh/uv/)
-- Docker Desktop with Docker Compose
-- Git
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/jeanmlv-dev/dataforge.git
 cd dataforge
 ```
 
-### 2. Install Python dependencies
+### 2. Configure Environment Variables
 
-```bash
-uv sync
-```
-
-### 3. Configure environment variables
-
-Create a local `.env` file using the example configuration.
+Create a local environment file.
 
 **Windows PowerShell:**
 
@@ -170,439 +188,446 @@ Create a local `.env` file using the example configuration.
 Copy-Item .env.example .env
 ```
 
-**Linux / macOS:**
+**macOS / Linux:**
 
 ```bash
 cp .env.example .env
 ```
 
-Configure the following variables:
+Update `POSTGRES_PASSWORD` in `.env` with a local development password.
 
-```dotenv
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
-POSTGRES_DB=dataforge
-POSTGRES_USER=dataforge
-POSTGRES_PASSWORD=change_me
-```
+The database configuration uses:
 
-Replace `change_me` with a local development password before running the application.
+| Variable | Local default |
+|---|---|
+| `POSTGRES_HOST` | `localhost` |
+| `POSTGRES_PORT` | `5433` |
+| `POSTGRES_DB` | `dataforge` |
+| `POSTGRES_USER` | `dataforge` |
+| `POSTGRES_PASSWORD` | Configured in `.env` |
 
-**Security:** Never commit `.env`, database credentials, confidential information, or real patient data.
+**Security:** Never commit `.env`, passwords, credentials, or sensitive datasets.
 
-### 4. Start PostgreSQL
+### 3. Start PostgreSQL
 
 ```bash
 docker compose up -d postgres
 ```
 
-Verify that PostgreSQL is healthy:
+Check the service status:
 
 ```bash
 docker compose ps
 ```
 
-### 5. Initialize the database schema
+PostgreSQL should report a healthy status before executing the pipeline.
+
+### 4. Initialize the Database
+
+If the schema has not already been created, initialize it using the following command.
 
 **Windows PowerShell:**
 
 ```powershell
-Get-Content sql/001_create_tables.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
+Get-Content sql/001_create_tables.sql -Raw |
+    docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
 ```
 
-**Linux / macOS:**
+**macOS / Linux:**
 
 ```bash
 docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1 < sql/001_create_tables.sql
 ```
 
-If the database schema has already been initialized, this step may be unnecessary.
+The schema defines the `patient_measurements` table and its database constraints.
 
-### 6. Run the ETL pipeline locally
-
-```bash
-uv run python -m dataforge.pipeline --input data/sample/example.csv
-```
-
-The pipeline reads the sample CSV, validates and transforms the data, and inserts or updates the records in PostgreSQL.
-
-### 7. Run the ETL pipeline with Docker Compose
-
-Build the application image:
-
-```bash
-docker compose build etl
-```
-
-Execute the containerized ETL pipeline:
+### 5. Run the Containerized ETL Pipeline
 
 ```bash
 docker compose run --rm etl
 ```
 
-This approach provides a reproducible execution environment without requiring the application to run directly on the host machine.
+Docker Compose starts the required services, executes the ETL pipeline, and writes the processed records into PostgreSQL.
 
-### 8. Inspect the stored data
+This workflow does not require a local Python installation.
+
+### 6. Alternative: Run with Local Python
+
+Install the project dependencies:
+
+```bash
+uv sync
+```
+
+Execute the ETL pipeline:
+
+```bash
+uv run python -m dataforge.pipeline --input data/sample/example.csv
+```
+
+### 7. Inspect the Database
 
 ```bash
 docker compose exec postgres psql -U dataforge -d dataforge -c "SELECT * FROM patient_measurements ORDER BY record_id;"
 ```
 
+The query displays the persisted source and derived measurements.
+
+---
+
+## Execution Demonstration
+
+The following screenshots were captured from actual local DataForge executions.
+
+### Containerized Pipeline Execution
+
+The ETL application runs inside a Docker container, connects to PostgreSQL, processes the sample dataset, and records execution metrics.
+
+![DataForge ETL Pipeline Execution](docs/screenshots/pipeline-execution.png)
+
+### Docker Compose Infrastructure
+
+Docker Compose manages the PostgreSQL service and supports containerized ETL execution.
+
+![DataForge Docker Compose](docs/screenshots/docker-compose.png)
+
+### Execution Observability
+
+Each pipeline execution generates a structured JSON report with processing metrics, stage durations, execution status, and error information when applicable.
+
+![DataForge JSON Execution Report](docs/screenshots/execution-report.png)
+
+---
+
+## Observability and Execution Metrics
+
+DataForge provides execution-level traceability through structured logging and JSON reports.
+
+Reports are written to:
+
+```text
+reports/pipeline_runs/
+```
+
+Each execution includes information such as:
+
+| Metric | Description |
+|---|---|
+| `run_id` | Unique pipeline execution identifier |
+| `status` | Execution outcome |
+| `input_file` | Processed input file |
+| `started_at` | Execution start timestamp |
+| `finished_at` | Execution completion timestamp |
+| `duration_seconds` | Total execution duration |
+| `records_read` | Number of input records |
+| `records_validated` | Number of validated records |
+| `records_rejected` | Number of rejected records |
+| `records_processed` | Number of records processed by storage |
+| `records_inserted` | Number of inserted database records |
+| `records_updated` | Number of updated database records |
+| `stage_durations` | Execution time by processing stage |
+| `error` | Error details, when applicable |
+
+### Example: Successful Execution
+
+```json
+{
+  "status": "success",
+  "input_file": "data/sample/example.csv",
+  "records_read": 5,
+  "records_validated": 5,
+  "records_rejected": 0,
+  "records_processed": 5,
+  "records_inserted": 0,
+  "records_updated": 5,
+  "rejection_scope": "batch",
+  "error": null
+}
+```
+
+This example illustrates a successful rerun in which all five records already exist in the database and are updated rather than duplicated.
+
+The full execution report also contains timestamps, stage durations, and a unique run identifier.
+
+### Example: Validation Failure
+
+```json
+{
+  "status": "failed",
+  "input_file": "invalid.csv",
+  "records_read": 1,
+  "records_validated": 0,
+  "records_rejected": 1,
+  "records_processed": 0,
+  "records_inserted": 0,
+  "records_updated": 0,
+  "rejection_scope": "batch",
+  "error": {
+    "stage": "validation",
+    "type": "ValueError",
+    "message": "Invalid test data"
+  }
+}
+```
+
+Invalid batches are rejected before database persistence.
+
+**Note:** The current pipeline uses batch-level rejection rather than partial acceptance of individual records.
+
+---
+
 ## SQL Analytics Layer
 
-DataForge includes a PostgreSQL analytics layer that transforms stored patient-measurement records into descriptive statistics, data quality indicators, and group-level analytical summaries.
+DataForge includes a dedicated SQL analytics layer to demonstrate how validated and persisted data can support downstream analytical workflows.
 
-The analytical SQL scripts are designed to demonstrate practical database analysis using SQL aggregations, Common Table Expressions (CTEs), window functions, and reusable views.
+### Analytical Components
 
-### Available SQL Scripts
-
-| File | Analytical purpose |
+| File | Analytical Purpose |
 |---|---|
-| `002_descriptive_statistics.sql` | Calculate descriptive statistics by study group |
-| `003_group_distributions.sql` | Analyze age-group distributions and percentages |
-| `004_data_quality_checks.sql` | Detect duplicates, missing values, invalid ages, and inconsistent derived measurements |
-| `005_group_comparisons.sql` | Compare mean measurements between study groups |
-| `006_analytics_views.sql` | Create reusable PostgreSQL analytical views |
+| `002_descriptive_statistics.sql` | Summary statistics by study group |
+| `003_group_distributions.sql` | Age-group distributions and percentages |
+| `004_data_quality_checks.sql` | Database-level integrity checks |
+| `005_group_comparisons.sql` | Comparison of measurements between groups |
+| `006_analytics_views.sql` | Reusable PostgreSQL analytical views |
 
-### 1. Descriptive Statistics
+### Create Analytical Views
 
-The descriptive statistics query summarizes patient measurements by study group.
+**Windows PowerShell:**
 
-Metrics include:
+```powershell
+Get-Content sql/006_analytics_views.sql -Raw |
+    docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
+```
 
-- Total number of records
-- Mean, minimum, and maximum age
-- Mean measurement
-- Standard deviation of measurements
-- Minimum and maximum measurement
+**macOS / Linux:**
 
-**Example query:**
+```bash
+docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1 < sql/006_analytics_views.sql
+```
+
+### Query Descriptive Statistics
 
 ```sql
 SELECT *
-FROM vw_group_statistics
-ORDER BY study_group;
+FROM vw_group_statistics;
 ```
 
-**Example results from a local test dataset:**
-
-| Study group | Records | Mean age | Mean measurement | SD measurement |
-|---|---:|---:|---:|---:|
-| A | 3 | 33.67 | 12.57 | 0.88 |
-| B | 2 | 48.50 | 15.65 | 0.64 |
-
-These results demonstrate how stored data can be summarized and compared across study groups.
-
-### 2. Age-Group Distributions
-
-The distribution analysis calculates the number and percentage of records in each age category.
-
-**Example query:**
+### Query Age-Group Distributions
 
 ```sql
 SELECT *
-FROM vw_age_group_distribution
-ORDER BY study_group, age_group;
+FROM vw_age_group_distribution;
 ```
 
-**Example results:**
-
-| Study group | Age group | Records | Percentage within group |
-|---|---|---:|---:|
-| A | 18–39 | 3 | 100.00% |
-| B | 40–59 | 2 | 100.00% |
-
-Window functions calculate group totals and percentages without requiring separate aggregation queries.
-
-### 3. Data Quality Checks
-
-The quality-control query evaluates the integrity of records stored in PostgreSQL.
-
-Checks include:
-
-- Duplicate record identifiers
-- Missing required values
-- Invalid patient ages
-- Inconsistencies between `measurement` and `measurement_squared`
-
-**Example query:**
-
-```sql
-SELECT *
-FROM vw_data_quality;
-```
-
-**Example results:**
-
-| Total records | Duplicate IDs | Missing values | Invalid ages | Inconsistent squared measurements | Status |
-|---:|---:|---:|---:|---:|---|
-| 5 | 0 | 0 | 0 | 0 | PASS |
-
-Floating-point comparisons use numerical tolerances to avoid incorrectly flagging valid results because of floating-point precision.
-
-### 4. Study-Group Comparisons
-
-DataForge supports comparisons between groups A and B.
-
-The analytical query calculates:
-
-- Number of records in each group
-- Mean measurement for each group
-- Absolute difference between group means
-- Percentage difference relative to group A
-
-**Example query:**
+### Compare Study Groups
 
 ```sql
 SELECT *
 FROM vw_group_comparison;
 ```
 
-**Example results:**
-
-| Group A mean | Group B mean | Absolute difference | Percentage difference |
-|---:|---:|---:|---:|
-| 12.57 | 15.65 | 3.08 | 24.54% |
-
-The comparison is descriptive and does not imply statistical significance or a causal treatment effect.
-
-### 5. Execute the SQL Analytics Scripts
+### Execute a SQL Analysis File
 
 **Windows PowerShell:**
 
 ```powershell
-Get-Content sql/002_descriptive_statistics.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
-
-Get-Content sql/003_group_distributions.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
-
-Get-Content sql/004_data_quality_checks.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
-
-Get-Content sql/005_group_comparisons.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
-
-Get-Content sql/006_analytics_views.sql -Raw | docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
+Get-Content sql/004_data_quality_checks.sql -Raw |
+    docker compose exec -T postgres psql -U dataforge -d dataforge -v ON_ERROR_STOP=1
 ```
 
-The final script creates or updates the analytical views.
+### Example Analytical Results
 
-### 6. Query the Analytical Views
+The sample dataset contains five synthetic records distributed across two study groups.
 
-```bash
-docker compose exec postgres psql -U dataforge -d dataforge -c "SELECT * FROM vw_group_statistics;"
-```
+An example of the group comparison output is:
 
-```bash
-docker compose exec postgres psql -U dataforge -d dataforge -c "SELECT * FROM vw_age_group_distribution;"
-```
+| Metric | Group A | Group B |
+|---|---:|---:|
+| Record count | 3 | 2 |
+| Mean measurement | 12.57 | 15.65 |
 
-```bash
-docker compose exec postgres psql -U dataforge -d dataforge -c "SELECT * FROM vw_data_quality;"
-```
+The observed difference in mean measurement is approximately **3.08**, with Group B showing a mean approximately **24.54% higher** than Group A.
 
-```bash
-docker compose exec postgres psql -U dataforge -d dataforge -c "SELECT * FROM vw_group_comparison;"
-```
+These results are descriptive only. The dataset is synthetic and is not intended for clinical or causal interpretation.
 
-These analytical views provide a foundation for reporting applications and future interactive dashboards.
+---
 
-## Pipeline Observability
+## Automated Testing
 
-DataForge implements application logging to improve execution transparency, debugging, and operational monitoring.
+DataForge includes unit, integration, and end-to-end tests.
 
-The pipeline records:
+The testing strategy covers:
 
-- Pipeline execution start and completion
-- Ingestion and validation events
-- Transformation progress
-- Database storage operations
-- Number of records processed
-- Total execution duration
-- Error details when execution fails
+- CSV ingestion and missing-file handling.
+- Schema validation and invalid input.
+- Data transformations.
+- PostgreSQL persistence.
+- Idempotent UPSERT behavior.
+- Full ETL pipeline execution.
+- Structured logging and execution metrics.
+- SQL analytics views and data-quality calculations.
 
-**Example execution logs:**
+### Run All Tests
 
-```text
-INFO | Starting DataForge pipeline
-INFO | Ingestion completed | records_read=5
-INFO | Validation completed | status=success
-INFO | Transformation completed | records_output=5
-INFO | Storage completed | records_processed=5
-INFO | Pipeline completed | status=success | records_read=5 | records_processed=5
-```
-
-Automated tests verify successful execution logs and error reporting.
-
-## Testing and Quality Assurance
-
-DataForge includes automated testing across the ingestion, validation, transformation, persistence, logging, and SQL analytics components.
-
-### Unit Tests
-
-```bash
-uv run pytest tests/unit -v
-```
-
-### Integration Tests
-
-Start PostgreSQL before executing database integration tests.
-
-```bash
-docker compose up -d postgres
-uv run pytest tests/integration -v
-```
-
-### SQL Analytics Tests
-
-```bash
-uv run pytest tests/integration/test_sql_analytics.py -v
-```
-
-The SQL analytics integration tests validate:
-
-- Successful creation of analytical views
-- Expected analytical columns
-- Consistency between source records and aggregated totals
-- Correct age-distribution percentages
-- Group-comparison calculations
-
-### Full Test Suite
+Ensure PostgreSQL is running, then execute:
 
 ```bash
 uv run pytest tests/ -v
 ```
 
-### Code Quality
+### Run Unit Tests
+
+```bash
+uv run pytest tests/unit/ -v
+```
+
+### Run Integration Tests
+
+```bash
+uv run pytest tests/integration/ -v
+```
+
+### Run Code Quality Checks
 
 ```bash
 uv run ruff check .
 uv run ruff format --check .
 ```
 
-To automatically format Python files:
-
-```bash
-uv run ruff format .
-```
+---
 
 ## Continuous Integration
 
-DataForge uses GitHub Actions to automatically validate code changes.
+DataForge uses GitHub Actions for automated quality verification.
 
-The CI workflow is defined in:
+The workflow is defined in:
 
 ```text
 .github/workflows/ci.yml
 ```
 
-The workflow includes:
+It runs on pushes and pull requests targeting the configured main branch and includes:
 
-1. Repository checkout
-2. Python and dependency installation using `uv`
-3. Ruff linting
-4. Ruff formatting validation
-5. PostgreSQL service initialization
-6. Database schema creation
-7. Automated unit and integration tests
+1. Source checkout.
+2. Python and dependency setup with `uv`.
+3. Ruff linting.
+4. Ruff formatting verification.
+5. PostgreSQL service initialization.
+6. Automated Pytest execution, including database integration tests.
 
-**CI status:** [View workflow executions](https://github.com/jeanmlv-dev/dataforge/actions)
+The workflow runs on GitHub-hosted infrastructure independently of the developer's local machine.
 
-The workflow helps ensure that changes remain compatible with the project's testing and quality requirements.
+**[View GitHub Actions workflow](https://github.com/jeanmlv-dev/dataforge/actions/workflows/ci.yml)**
 
-## Data Model
-
-The main PostgreSQL table is `patient_measurements`.
-
-| Column | Description |
-|---|---|
-| `record_id` | Unique record identifier and primary key |
-| `patient_age` | Patient age in years |
-| `study_group` | Synthetic study-group category |
-| `measurement` | Numeric measurement value |
-| `age_group` | Derived age category |
-| `measurement_squared` | Squared measurement value |
-| `updated_at` | Timestamp of the most recent database update |
-
-Additional database constraints are defined in `sql/001_create_tables.sql`.
-
-All records are synthetic and intended exclusively for software development and demonstration.
+---
 
 ## Engineering Decisions
 
-### Modular Architecture
+DataForge follows several engineering principles.
 
-Data ingestion, validation, transformation, storage, and analytics are separated into independent components.
+### Idempotency
 
-This design improves maintainability, testing, and future extensibility.
+The storage layer uses PostgreSQL `ON CONFLICT` operations to prevent duplicate primary keys during repeated execution.
 
-### Idempotent Database Operations
+### Separation of Concerns
 
-PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` ensures that repeated pipeline executions update existing records instead of creating duplicates.
+Ingestion, validation, transformation, persistence, and observability are organized into separate modules.
 
-### Reproducible Infrastructure
+### Data Integrity
 
-Docker Compose provides a consistent execution environment for the application and database.
+Schema validation and database constraints protect stored data from invalid inputs.
 
-The project uses `uv` for Python dependency management and reproducible installation.
+### Transactional Persistence
 
-### Automated Data Quality
+Database operations are executed within transactions to support atomic persistence.
 
-Pandera validates incoming data before persistence, while SQL quality checks verify the consistency of stored records.
+### Reproducibility
 
-This provides complementary validation at the application and database layers.
+Docker Compose and `uv.lock` provide consistent execution environments.
 
 ### Observability
 
-Pipeline logging provides execution visibility and makes failures easier to investigate.
+Each execution produces logs and a structured report with processing metrics and failure details.
 
-### Analytical Reusability
+### Automated Verification
 
-PostgreSQL analytical views separate reusable analytical logic from the underlying ETL implementation.
+Pytest and Ruff provide repeatable quality checks, while GitHub Actions validates repository changes.
 
-These views can support future reporting tools and dashboards.
+For a detailed discussion of design rationale, limitations, and trade-offs, see [Engineering Decisions](docs/engineering-decisions.md).
 
-### Automated Quality Gates
+---
 
-GitHub Actions runs code quality checks and automated tests, reducing the risk of regressions.
+## Known Limitations
+
+DataForge is a portfolio-scale engineering project rather than a production clinical data platform.
+
+Current limitations include:
+
+- CSV-focused ingestion.
+- In-memory processing with Pandas.
+- Small synthetic demonstration datasets.
+- Batch-level validation and rejection.
+- Locally stored JSON execution reports.
+- No built-in workflow scheduler.
+- No historical versioning of updated records.
+- No production-grade high availability or disaster recovery.
+
+These limitations define the scope of the initial release and provide opportunities for future enhancements.
+
+---
 
 ## Project Roadmap
 
-### Completed
+### Version 1.0.0
 
-- [x] Modular CSV ingestion
-- [x] Pandera schema validation
-- [x] Data transformation and derived variables
-- [x] PostgreSQL integration
-- [x] Idempotent UPSERT operations
-- [x] Unit and integration tests
-- [x] End-to-end pipeline integration tests
-- [x] GitHub Actions CI
-- [x] Pipeline logging and execution metrics
-- [x] Docker containerization
-- [x] Docker Compose application and database orchestration
-- [x] Descriptive statistics in SQL
-- [x] Age-group distributions
-- [x] SQL data quality checks
-- [x] Study-group comparisons
-- [x] Reusable PostgreSQL analytical views
-- [x] SQL analytics integration tests
+- [x] Python CSV ingestion.
+- [x] Pandera data validation.
+- [x] Pandas transformations.
+- [x] PostgreSQL persistence.
+- [x] Idempotent UPSERT operations.
+- [x] Automated unit tests.
+- [x] PostgreSQL integration tests.
+- [x] End-to-end ETL tests.
+- [x] GitHub Actions CI.
+- [x] Structured pipeline logging.
+- [x] JSON execution reports.
+- [x] Dockerized Python ETL application.
+- [x] Docker Compose infrastructure.
+- [x] SQL analytics queries and views.
+- [x] SQL integration tests.
+- [x] Architecture documentation.
+- [x] Engineering decisions documentation.
+- [x] Real execution screenshots.
 
-### Planned Improvements
+### Potential Future Enhancements
 
-- [ ] Interactive analytical dashboard using Streamlit
-- [ ] Visualizations for study-group comparisons and distributions
-- [ ] Dashboard indicators for data quality and pipeline execution
-- [ ] Expand support for additional input formats
-- [ ] Implement batch processing for larger datasets
-- [ ] Add automated data quality reports
-- [ ] Expand architecture and deployment documentation
+- [ ] Support additional input formats, including Parquet.
+- [ ] Add incremental ingestion and batch processing.
+- [ ] Implement row-level data quarantine.
+- [ ] Introduce workflow scheduling.
+- [ ] Integrate centralized observability.
+- [ ] Add performance benchmarks.
+- [ ] Develop an interactive analytics dashboard.
+- [ ] Introduce database migration management.
+
+---
+
+## Documentation
+
+- [System Architecture](docs/architecture.md)
+- [Engineering Decisions](docs/engineering-decisions.md)
+- [GitHub Actions](https://github.com/jeanmlv-dev/dataforge/actions)
+
+---
 
 ## Author
 
 **Jean Mendes**
 
-Statistical Programming · Data Engineering · Biostatistics · Data Analytics
+Statistical Programming · Data Engineering · Biostatistics
 
 [GitHub](https://github.com/jeanmlv-dev) · [LinkedIn](https://www.linkedin.com/in/jean-mendes-0a455680/)
 
 ---
 
-*DataForge is an independent portfolio project developed for educational and professional demonstration purposes. All example datasets are synthetic and do not contain confidential patient information or proprietary clinical-trial data.*
+*DataForge is an independent portfolio project built for educational and professional demonstration purposes. All example data is synthetic and does not represent real patients or confidential clinical-trial records.*
